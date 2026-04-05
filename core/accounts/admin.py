@@ -103,6 +103,8 @@ class EmpresaAdmin(admin.ModelAdmin):
     fields = ('nombre', 'parent')  # 👈 muestra selector
     inlines = [UserProfileInline]
 
+    
+
     def has_change_permission(self, request, obj=None):
         return False
 
@@ -169,7 +171,7 @@ class EmpresaAdmin(admin.ModelAdmin):
             CreditTransaction.objects.create(
                 wallet=wallet_empresa,
                 amount=amount,
-                transaction_type="purchase_empresa",  # más claro
+                transaction_type="purchase",  # más claro
                 motivo=motivo,
                 created_by=request.user
             )
