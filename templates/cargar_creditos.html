@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+<h1>Cargar créditos</h1>
+
+<p><strong>Empresa:</strong> {{ empresa.nombre }}</p>
+<p><strong>Saldo actual:</strong> {{ wallet.balance }}</p>
+
+<hr>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Monto:</label>
+    <input type="number" name="amount" min="1" required>
+
+    <label>Motivo:</label>
+    <input type="text" name="motivo" required placeholder="Ej: Compra equipo, ajuste manual..." style="width:100%;">
+
+    <br><br>
+
+    <button type="submit" class="button default">Cargar</button>
+</form>
+
+<br>
+
+<a href="/admin/accounts/empresa/">← Volver</a>
+
+{% endblock %}

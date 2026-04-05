@@ -1,0 +1,15 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/custom.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div style="display: flex; align-items: center; gap: 12px;">
+    <img src="{% static 'admin/logo_header.png' %}" style="height:40px;">
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

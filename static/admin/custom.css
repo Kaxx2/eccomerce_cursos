@@ -1,0 +1,325 @@
+/* ===== BASE ===== */
+body {
+    background-color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #e5e7eb;
+}
+
+/* ===== HEADER ===== */
+#header {
+    background: #020617;
+    border-bottom: 1px solid #1e293b;
+}
+
+/* ===== SIDEBAR ===== */
+#nav-sidebar {
+    background: #020617;
+    border-right: 1px solid #1e293b;
+}
+
+#nav-sidebar a {
+    color: #cbd5f5;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin: 2px 6px;
+    display: block;
+    font-size: 14px;
+}
+
+#nav-sidebar a:hover {
+    background: #1e293b;
+    color: white;
+}
+
+/* ===== CONTENIDO ===== */
+#content {
+    padding: 25px;
+}
+
+/* ===== TARJETAS ===== */
+.dashboard .module {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 18px;
+}
+
+/* ===== TITULOS ===== */
+.module h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+
+/* ===== LINKS ===== */
+a {
+    color: #38bdf8;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #7dd3fc;
+}
+
+/* ===== BOTONES ===== */
+.button, input[type=submit] {
+    background: #2563eb;
+    color: white;
+    border-radius: 6px;
+    padding: 6px 12px;
+    border: none;
+    font-size: 13px;
+}
+
+.button:hover {
+    background: #1d4ed8;
+}
+
+/* ===== TABLAS ===== */
+#changelist table {
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #020617;
+    color: #e5e7eb;
+}
+
+#changelist thead {
+    background: #020617;
+}
+
+/* ===== FILAS ===== */
+#changelist table tr {
+    border-bottom: 1px solid #1e293b;
+}
+
+/* ===== RECENT ACTIONS ===== */
+#content-related {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+}
+
+/* ===== ESCALA GENERAL ===== */
+
+/* Fuente global más grande */
+body {
+    font-size: 15px;
+}
+
+/* Títulos */
+h1 {
+    font-size: 22px;
+}
+
+h2 {
+    font-size: 16px;
+}
+
+/* Sidebar */
+#nav-sidebar {
+    width: 240px;
+}
+
+#nav-sidebar a {
+    font-size: 14px;
+    padding: 10px 14px;
+}
+
+/* Contenido */
+#content {
+    padding: 30px 40px;
+}
+
+/* Tablas */
+#changelist table {
+    font-size: 14px;
+}
+
+/* Inputs */
+input, select, textarea {
+    font-size: 14px;
+    padding: 8px;
+}
+
+/* Botones */
+.button, input[type=submit] {
+    font-size: 14px;
+    padding: 8px 14px;
+}
+
+/* Tarjetas del dashboard */
+.dashboard .module {
+    padding: 20px;
+}
+
+/* ===== FIX HOME (DASHBOARD) ===== */
+
+/* Agrandar textos en home */
+.dashboard {
+    font-size: 15px;
+}
+
+/* Tarjetas más grandes */
+.dashboard .module {
+    padding: 20px;
+}
+
+/* Títulos más grandes */
+.dashboard .module h2 {
+    font-size: 16px;
+}
+
+/* Links dentro de dashboard */
+.dashboard a {
+    font-size: 14px;
+}
+
+/* Separación */
+.dashboard .module table td {
+    padding: 8px;
+}
+
+/* Recent actions box */
+#content-related {
+    font-size: 14px;
+}
+
+
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+}
+
+
+/* ===== LAYOUT CENTRAL ===== */
+#content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ===== DASHBOARD GRID ===== */
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+}
+
+/* ===== TARJETAS MÁS LIMPIAS ===== */
+.dashboard .module {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+/* ===== TITULOS MÁS PRO ===== */
+.module h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+}
+
+/* ===== LINKS MÁS LIMPIOS ===== */
+.dashboard a {
+    color: #e5e7eb;
+}
+
+.dashboard a:hover {
+    color: white;
+}
+
+
+/* ===== HEADER MÁS EMPRESARIAL ===== */
+#header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* ===== TABLAS MÁS LIMPIAS ===== */
+#changelist table {
+    background: #020617;
+    border: 1px solid #1e293b;
+}
+
+#changelist thead th {
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* ===== FILAS ===== */
+#changelist table tr:hover {
+    background: #020617;
+}
+
+/* ===== INPUTS MÁS PRO ===== */
+input, select {
+    background: #020617;
+    border: 1px solid #1e293b;
+    color: #e5e7eb;
+}
+
+
+/* ===== ITEMS COMO BOTONES ===== */
+.dashboard .module table tr {
+    transition: all 0.15s ease;
+}
+
+.dashboard .module table tr:hover {
+    background: #1e293b;
+    border-radius: 8px;
+}
+
+/* ===== LINKS COMO BOTONES ===== */
+.dashboard .module a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+}
+
+/* ===== EFECTO HOVER ===== */
+.dashboard .module a:hover {
+    background: #1e293b;
+    text-decoration: none;
+}
+
+/* Ocultar header del admin SOLO en login */
+.login #header {
+    display: none;
+}
+
+
+
+
+.kpi-container {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.kpi-card {
+    background: #020617;
+    border: 1px solid #1e293b;
+    padding: 16px;
+    border-radius: 10px;
+    min-width: 160px;
+}
+
+.kpi-card span {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.kpi-card strong {
+    display: block;
+    font-size: 20px;
+    margin-top: 5px;
+}
