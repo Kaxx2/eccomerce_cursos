@@ -132,8 +132,8 @@ class Wallet(models.Model):
 class CreditTransaction(models.Model):
 
     TRANSACTION_TYPES = (
-        ("purchase_empresa", "Compra empresarial"),
-        ("purchase_personal", "Compra particular"),
+        ("purchase_empresa", "Carga empresarial"),
+        ("purchase_personal", "Carga particular"),
         
         ("transfer", "Transferencia"),
         ("redeem", "Consumo"),

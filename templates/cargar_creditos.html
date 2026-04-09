@@ -2,29 +2,73 @@
 
 {% block content %}
 
-<h1>Cargar créditos</h1>
+<div style="max-width:700px; margin:40px auto; background:#0b1f3a; padding:30px; border-radius:12px; color:white;">
 
-<p><strong>Empresa:</strong> {{ empresa.nombre }}</p>
-<p><strong>Saldo actual:</strong> {{ wallet.balance }}</p>
+    <h2>Cargar créditos</h2>
 
-<hr>
+    <p><strong>Empresa:</strong> {{ empresa }}</p>
+    <p><strong>Saldo actual:</strong> {{ wallet.balance_empresa }}</p>
 
-<form method="post">
-    {% csrf_token %}
+    <form method="post">
+        {% csrf_token %}
 
-    <label>Monto:</label>
-    <input type="number" name="amount" min="1" required>
+        <!-- MONTO -->
+        <div style="margin-bottom:15px;">
+            <label>Monto:</label><br>
+            <input type="number" name="amount" required
+                style="width:200px; padding:8px; background:#111; color:white; border:1px solid #555; border-radius:6px;">
+        </div>
 
-    <label>Motivo:</label>
-    <input type="text" name="motivo" required placeholder="Ej: Compra equipo, ajuste manual..." style="width:100%;">
+        <!-- MOTIVO -->
+        <div style="margin-bottom:15px;">
+            <label>Motivo:</label>
 
-    <br><br>
+            <select id="motivo_select" name="motivo_select"
+                style="width:100%; margin-top:5px; padding:10px; background:#111; color:white; border:1px solid #555; border-radius:6px;">
+                
+                <option value="">Seleccionar motivo</option>
+                <option value="Compra de créditos empresa">Compra de créditos empresa</option>
+                <option value="Recarga administrativa">Recarga administrativa</option>
+                <option value="Promoción / bonificación">Promoción / bonificación</option>
+                <option value="Ajuste manual">Ajuste manual</option>
+                <option value="otro">Otro...</option>
+            </select>
 
-    <button type="submit" class="button default">Cargar</button>
-</form>
+            <input 
+                type="text" 
+                id="motivo_custom" 
+                name="motivo_custom"
+                placeholder="Escribí el motivo..."
+                style="display:none; width:100%; margin-top:10px; padding:10px; background:#111; color:white; border:1px solid #555; border-radius:6px;"
+            >
+        </div>
 
-<br>
+        <button type="submit"
+            style="margin-top:10px; padding:10px 15px; background:#28a745; border:none; color:white; border-radius:6px;">
+            Cargar
+        </button>
 
-<a href="/admin/accounts/empresa/">← Volver</a>
+    </form>
+
+    <br>
+
+    <a href="/admin/accounts/empresa/" style="color:#ccc;">← Volver</a>
+
+</div>
+
+<!-- 🔥 JS -->
+<script>
+    const select = document.getElementById("motivo_select");
+    const inputCustom = document.getElementById("motivo_custom");
+
+    select.addEventListener("change", function () {
+        if (this.value === "otro") {
+            inputCustom.style.display = "block";
+        } else {
+            inputCustom.style.display = "none";
+            inputCustom.value = "";
+        }
+    });
+</script>
 
 {% endblock %}

@@ -165,9 +165,19 @@ class EmpresaAdmin(admin.ModelAdmin):
                 messages.error(request, "Monto inválido")
                 return redirect(request.path)
 
-            # 👇 motivo obligatorio
-            motivo = request.POST.get("motivo", "").strip()
+            # 🔥 NUEVO SISTEMA DE MOTIVO
+            motivo_select = request.POST.get("motivo_select", "").strip()
+            motivo_custom = request.POST.get("motivo_custom", "").strip()
 
+            # lógica clara
+            if motivo_select == "otro":
+                motivo = motivo_custom
+            elif motivo_select:
+                motivo = motivo_select
+            else:
+                motivo = ""
+
+            # validación final
             if not motivo:
                 messages.error(request, "Debés ingresar un motivo")
                 return redirect(request.path)
@@ -180,7 +190,7 @@ class EmpresaAdmin(admin.ModelAdmin):
             CreditTransaction.objects.create(
                 wallet=wallet_empresa,
                 amount=amount,
-                transaction_type="purchase_empresa",  # más claro
+                transaction_type="purchase_empresa",  # 👈 mantené consistente
                 motivo=motivo,
                 created_by=request.user
             )
