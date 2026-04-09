@@ -642,6 +642,7 @@ class WalletAdmin(admin.ModelAdmin):
                     wallet=wallet,
                     amount=-costo,  # 👈 negativo porque consume
                     transaction_type="redeem",
+                    motivo="Canje por curso",
                     created_by=request.user
                 )
 
@@ -677,10 +678,6 @@ class WalletAdmin(admin.ModelAdmin):
     list_filter = (WalletTypeFilter,)
 
     
-
-
-
-
 
 def ajuste_manual_global(request):
     from django.shortcuts import render, redirect

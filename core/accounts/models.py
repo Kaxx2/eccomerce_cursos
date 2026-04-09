@@ -82,14 +82,16 @@ class UserProfile(models.Model):
                         wallet=wallet_empresa,
                         amount=amount,
                         transaction_type="refund_empresa",
-                        created_by=request.user,
+                        motivo="El usuario se fue de la empresa",
+                        #created_by="system",
                     )
 
                     CreditTransaction.objects.create(
                         wallet=wallet_user,
                         amount=-amount,
                         transaction_type="refund_empresa",
-                        created_by=request.user,
+                        motivo="El usuario se fue de la empresa",
+                        #created_by="system",
                     )
 
         super().save(*args, **kwargs)
