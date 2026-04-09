@@ -2,36 +2,122 @@
 
 {% block content %}
 
-<h1>Transferir créditos</h1>
+<div style="
+    max-width:700px;
+    margin:50px auto;
+    background:#0b1f3a;
+    padding:35px;
+    border-radius:14px;
+    color:white;
+    box-shadow:0 0 15px rgba(0,0,0,0.4);
+">
 
-<p><strong>Empresa:</strong> {{ empresa.nombre }}</p>
-<p><strong>Saldo actual:</strong> {{ wallet.balance }} créditos</p>
+    <h2>🔁 Transferir créditos</h2>
 
-<hr>
+    <p><strong>Empresa:</strong> {{ empresa }}</p>
+    <p style="margin-bottom:25px;"><strong>Saldo:</strong> {{ wallet.balance_empresa }}</p>
 
-<form method="post">
-    {% csrf_token %}
+    <form method="post">
+        {% csrf_token %}
 
-    <label>Usuario:</label>
-    <select name="user" required>
+        <!-- USUARIO -->
+<div style="margin-bottom:30px;">
+    <label style="display:block; margin-bottom:8px;">Usuario</label>
+
+    <select name="user" required
+        style="
+            width:100%;
+            padding:14px;
+            border-radius:8px;
+            background:#111;
+            color:white;
+            border:1px solid #555;
+            font-size:15px;
+            height:55px;
+        ">
+
         <option value="">Seleccionar usuario</option>
-        {% for user in usuarios %}
-            <option value="{{ user.id }}">{{ user.username }}</option>
+        {% for u in usuarios %}
+            <option value="{{ u.id }}">{{ u.username }}</option>
         {% endfor %}
     </select>
+</div>
 
-    <br><br>
+        <!-- MONTO -->
+        <div style="margin-bottom:20px;">
+            <label>Monto</label>
+            <input type="number" name="amount" required
+                style="width:200px; padding:10px; border-radius:6px;">
+        </div>
 
-    <label>Monto:</label>
-    <input type="number" name="amount" min="1" required>
+        <!-- MOTIVO -->
+        <div style="margin-bottom:25px;">
+            <label>Motivo</label>
 
-    <br><br>
+            <select id="motivo_select" name="motivo_select" required
+                style="
+                    width:100%;
+                    padding:12px;
+                    border-radius:8px;
+                    background:#111;
+                    color:white;
+                    border:1px solid #555;
+                    height:50px;
+                ">
 
-    <button type="submit" class="button default">Transferir</button>
-</form>
+                <option value="">Seleccionar motivo</option>
+                <option value="Asignación de créditos">Asignación de créditos</option>
+                <option value="otro">Otro...</option>
 
-<br>
+            </select>
 
-<a href="/admin/accounts/empresa/">← Volver</a>
+            <input 
+                type="text" 
+                id="motivo_custom" 
+                name="motivo_custom"
+                placeholder="Motivo personalizado..."
+                style="
+                    display:none;
+                    width:100%;
+                    margin-top:10px;
+                    padding:12px;
+                    background:#111;
+                    color:white;
+                    border:1px solid #555;
+                    border-radius:8px;
+                "
+            >
+        </div>
+
+        <button type="submit"
+            style="
+                padding:12px 20px;
+                background:#28a745;
+                color:white;
+                border:none;
+                border-radius:8px;
+                font-weight:bold;
+                cursor:pointer;
+            ">
+            Transferir
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+    const select = document.getElementById("motivo_select");
+    const inputCustom = document.getElementById("motivo_custom");
+
+    select.addEventListener("change", function () {
+        if (this.value === "otro") {
+            inputCustom.style.display = "block";
+        } else {
+            inputCustom.style.display = "none";
+            inputCustom.value = "";
+        }
+    });
+</script>
 
 {% endblock %}

@@ -1,25 +1,122 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cargar Créditos</title>
-</head>
-<body style="background:#0b1a2b; color:white; font-family:sans-serif;">
+{% extends "admin/base_site.html" %}
 
-    <h2>Cargar créditos a {{ wallet.owner }}</h2>
+{% block content %}
 
-    <p>Saldo actual: {{ wallet.balance }}</p>
+<div style="
+    max-width:700px;
+    margin:50px auto;
+    background:#0b1f3a;
+    padding:35px;
+    border-radius:14px;
+    color:white;
+    box-shadow:0 0 15px rgba(0,0,0,0.4);
+">
+
+    <h2 style="margin-bottom:15px;">
+        💳 Cargar créditos a {{ wallet.user }}
+    </h2>
+
+    <p style="margin-bottom:25px;">
+        <strong>Saldo actual:</strong> {{ wallet.balance_personal }}
+    </p>
 
     <form method="post">
         {% csrf_token %}
 
-        <label>Monto:</label><br>
-        <input type="number" name="amount" required><br><br>
+        <!-- MONTO -->
+        <div style="margin-bottom:25px;">
+            <label style="display:block; margin-bottom:5px;">Monto</label>
+            <input type="number" name="amount" required
+                style="
+                    width:220px;
+                    padding:10px;
+                    background:#111;
+                    color:white;
+                    border:1px solid #555;
+                    border-radius:6px;
+                ">
+        </div>
 
-        <label>Motivo:</label><br>
-        <input type="text" name="motivo" required><br><br>
+        <!-- MOTIVO -->
+        <div style="margin-bottom:30px;">
+            <label style="display:block; margin-bottom:8px;">Motivo</label>
 
-        <button type="submit">Cargar</button>
+            <select id="motivo_select" name="motivo_select" required
+                style="
+                    width:100%;
+                    padding:12px;
+                    border-radius:8px;
+                    background:#111;
+                    color:white;
+                    border:1px solid #555;
+                    font-size:15px;
+                    height:50px;
+                ">
+
+                <option value="">Seleccionar motivo</option>
+                <option value="Carga Particular">Carga Particular</option>
+                <option value="Bonificación por Compra de Curso">Bonificación por Compra de Curso</option>
+                <option value="otro">Otro...</option>
+
+            </select>
+
+            <input 
+                type="text" 
+                id="motivo_custom" 
+                name="motivo_custom"
+                placeholder="Escribí el motivo personalizado..."
+                style="
+                    display:none;
+                    width:100%;
+                    margin-top:12px;
+                    padding:12px;
+                    background:#111;
+                    color:white;
+                    border:1px solid #555;
+                    border-radius:8px;
+                    font-size:15px;
+                "
+            >
+        </div>
+
+        <!-- BOTÓN -->
+        <button type="submit"
+            style="
+                padding:12px 18px;
+                background:#28a745;
+                border:none;
+                color:white;
+                border-radius:8px;
+                font-weight:bold;
+                cursor:pointer;
+                font-size:15px;
+            ">
+            Cargar créditos
+        </button>
+
     </form>
 
-</body>
-</html>
+    <div style="margin-top:25px;">
+        <a href="/admin/accounts/wallet/" style="color:#ccc; text-decoration:none;">
+            ← Volver
+        </a>
+    </div>
+
+</div>
+
+<!-- 🔥 JS -->
+<script>
+    const select = document.getElementById("motivo_select");
+    const inputCustom = document.getElementById("motivo_custom");
+
+    select.addEventListener("change", function () {
+        if (this.value === "otro") {
+            inputCustom.style.display = "block";
+        } else {
+            inputCustom.style.display = "none";
+            inputCustom.value = "";
+        }
+    });
+</script>
+
+{% endblock %}

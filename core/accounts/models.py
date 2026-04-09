@@ -132,13 +132,13 @@ class Wallet(models.Model):
 class CreditTransaction(models.Model):
 
     TRANSACTION_TYPES = (
-        ("purchase_empresa", "Carga empresarial"),
-        ("purchase_personal", "Carga particular"),
+        ("purchase_empresa", "CARGA EMPRESARIAL"),
+        ("purchase_personal", "CARGA PARTICULAR"),
         
-        ("transfer", "Transferencia"),
-        ("redeem", "Consumo"),
-        ("refund_empresa", "Devolución automática"),
-        ("adjustment", "Ajuste Manual"),
+        ("transfer", "TRANSFERENCIA"),
+        ("redeem", "CONSUMO"),
+        ("refund_empresa", "DEVOLUCIÓN AUTOMÁTICA"),
+        ("adjustment", "AJUSTE MANUAL"),
     )
 
     from django.contrib.auth.models import User

@@ -69,6 +69,8 @@ class CustomAdminSite(AdminSite):
             ]
 
             return custom_urls + urls
+    
+
 
 #class EmpresaUsuarioFilter(admin.SimpleListFilter):
     #title = "Tipo"
@@ -223,15 +225,14 @@ class EmpresaAdmin(admin.ModelAdmin):
     
     def transferir_creditos_view(self, request, empresa_id):
 
+        from django.shortcuts import get_object_or_404, render, redirect
+        from django.contrib import messages
+
         empresa = get_object_or_404(Empresa, id=empresa_id)
 
-        # ✅ asegura wallet de empresa
         wallet_empresa, _ = Wallet.objects.get_or_create(
             empresa=empresa,
-            defaults={
-                "balance_empresa": 0,
-                "balance_personal": 0
-            }
+            defaults={"balance_empresa": 0, "balance_personal": 0}
         )
 
         usuarios = User.objects.filter(userprofile__empresa=empresa)
@@ -244,7 +245,7 @@ class EmpresaAdmin(admin.ModelAdmin):
                 messages.error(request, "Seleccioná un usuario")
                 return redirect(request.path)
 
-            # ✅ validación de monto
+            # monto
             try:
                 amount = int(request.POST.get("amount"))
                 if amount <= 0:
@@ -253,54 +254,65 @@ class EmpresaAdmin(admin.ModelAdmin):
                 messages.error(request, "Monto inválido")
                 return redirect(request.path)
 
-            user = get_object_or_404(User, id=user_id)
+            # 🔥 MOTIVO NUEVO
+            motivo_select = request.POST.get("motivo_select", "").strip()
+            motivo_custom = request.POST.get("motivo_custom", "").strip()
 
+            if motivo_select == "otro":
+                motivo = motivo_custom
+            elif motivo_select:
+                motivo = motivo_select
+            else:
+                motivo = ""
+
+            if not motivo:
+                messages.error(request, "Debés ingresar un motivo")
+                return redirect(request.path)
+
+            user = get_object_or_404(User, id=user_id)
             profile = getattr(user, 'userprofile', None)
 
             if not profile or not profile.empresa:
                 messages.error(request, "El usuario no pertenece a una empresa")
                 return redirect(request.path)
 
-            # ✅ asegura wallet del usuario
             wallet_user, _ = Wallet.objects.get_or_create(
                 user=user,
-                defaults={
-                    "balance_empresa": 0,
-                    "balance_personal": 0
-                }
+                defaults={"balance_empresa": 0, "balance_personal": 0}
             )
 
-            # ✅ validación de saldo empresa
             if wallet_empresa.balance_empresa < amount:
                 messages.error(request, "La empresa no tiene suficientes créditos")
             else:
-                # 🔥 transferencia correcta (solo créditos de empresa)
+                # transferencia
                 wallet_empresa.balance_empresa -= amount
                 wallet_user.balance_empresa += amount
 
                 wallet_empresa.save()
                 wallet_user.save()
 
-                # ✅ registro de transferencia
+                # registro transferencia
                 CreditTransfer.objects.create(
                     from_wallet=wallet_empresa,
                     to_wallet=wallet_user,
                     amount=amount
                 )
 
-                # ✅ historial contable (empresa pierde)
+                # historial empresa
                 CreditTransaction.objects.create(
                     wallet=wallet_empresa,
                     amount=-amount,
                     transaction_type="transfer",
+                    motivo=f"Transferencia a {user.username} - {motivo}",
                     created_by=request.user
                 )
 
-                # ✅ historial contable (usuario recibe)
+                # historial usuario
                 CreditTransaction.objects.create(
                     wallet=wallet_user,
                     amount=amount,
                     transaction_type="transfer",
+                    motivo=f"Transferencia desde {empresa.nombre} - {motivo}",
                     created_by=request.user
                 )
 
@@ -340,7 +352,7 @@ class CreditTransactionAdmin(admin.ModelAdmin):
     list_display = (
     'wallet',
     'amount',
-    'transaction_type',
+    'colored_transaction_type',
     'motivo',
     'created_by',  # 👈 nuevo
     'created_at'
@@ -357,124 +369,29 @@ class CreditTransactionAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
     
-    #def revertir_transaccion(self, obj):
-        from django.urls import reverse
-        from django.utils.html import format_html
+    def colored_transaction_type(self, obj):
+        label = obj.get_transaction_type_display()
 
-        # ❌ no mostrar si no es carga o ya está revertida
-        if obj.transaction_type != "purchase":
-            return "-"
+        if obj.transaction_type in ["adjustment", "refund_empresa", "transfer"]:
+            color = "#ffc107"  # amarillo
 
-        if obj.reverted:
-            return "Revertida"
+        elif obj.transaction_type in ["purchase", "purchase_personal", "purchase_empresa"]:
+            color = "#28a745"  # verde
 
-        url = reverse("admin:revertir-transaccion", args=[obj.id])
-
-        return format_html(
-            '<a class="button" '
-            'style="padding:4px 8px; background:#dc3545; color:white; border-radius:4px;" '
-            'href="{}" '
-            'onclick="return confirm(\'¿Revertir esta transacción?\\nEsto generará un movimiento inverso.\')">'
-            'Revertir</a>',
-            url
-        )#
-    #def revertir_transaccion_view(self, request, transaction_id):
-
-        from django.shortcuts import get_object_or_404, redirect
-        from django.contrib import messages
-
-        transaction = get_object_or_404(CreditTransaction, id=transaction_id)
-
-        # 👇 VALIDACIÓN CORRECTA
-        if transaction.transaction_type != "purchase":
-            messages.error(request, "Solo se pueden revertir cargas de créditos")
-            return redirect("/admin/accounts/credittransaction/")
-            
-        from django.shortcuts import get_object_or_404, redirect
-        from django.contrib import messages
-
-        transaction = get_object_or_404(CreditTransaction, id=transaction_id)
-
-        if transaction.reverted:
-            messages.error(request, "Esta transacción ya fue revertida")
-            return redirect("/admin/accounts/credittransaction/")
-
-        wallet = transaction.wallet
-
-        # crear reversión
-        CreditTransaction.objects.create(
-        wallet=wallet,
-        amount=-transaction.amount,
-        transaction_type="refund",
-        motivo=f"Reversión de transacción #{transaction.id}",
-        created_by=request.user
-    )
-
-        # actualizar balance
-        motivo = (transaction.motivo or "").lower()
-
-        if "personal" in motivo or "particular" in motivo:
-            if wallet.balance_personal < transaction.amount:
-                messages.error(request, "No hay saldo personal suficiente para revertir")
-                return redirect("/admin/accounts/credittransaction/")
-            
-            wallet.balance_personal -= transaction.amount
+        elif obj.transaction_type == "redeem":
+            color = "#dc3545"  # rojo
 
         else:
-            if wallet.balance_empresa < transaction.amount:
-                messages.error(request, "No hay saldo empresa suficiente para revertir")
-                return redirect("/admin/accounts/credittransaction/")
+            color = "#ccc"  # fallback
+
+        return format_html(
+            '<strong style="color:{};">{}</strong>',
+            color,
+            label.upper()
+        )
+
+    colored_transaction_type.short_description = "Transaction type"
     
-        wallet.balance_empresa -= transaction.amount
-
-        wallet.save()
-
-        # marcar como revertida
-        transaction.reverted = True
-        transaction.save()
-
-        messages.success(request, "Transacción revertida correctamente")
-
-        return redirect("/admin/accounts/credittransaction/")#
-    
-    #def ajuste_manual_view(self, request):
-        from django.shortcuts import render, redirect
-        from django.contrib import messages
-        from .models import Wallet, CreditTransaction
-
-        if request.method == "POST":
-            wallet_id = request.POST.get("wallet_id")
-            amount = int(request.POST.get("amount"))
-            tipo = request.POST.get("tipo")
-            motivo = request.POST.get("motivo")
-
-            wallet = Wallet.objects.get(id=wallet_id)
-
-            # 💥 aplicar ajuste
-            if tipo == "empresa":
-                wallet.balance_empresa += amount
-            else:
-                wallet.balance_personal += amount
-
-            wallet.save()
-
-            # 💥 registrar historial
-            CreditTransaction.objects.create(
-                wallet=wallet,
-                amount=amount,
-                transaction_type="adjustment",
-                motivo=motivo,
-                created_by=request.user
-            )
-
-            messages.success(request, "Ajuste realizado correctamente")
-            return redirect("/admin/accounts/credittransaction/")
-
-        wallets = Wallet.objects.all()
-
-        return render(request, "admin/ajuste_manual.html", {
-            "wallets": wallets
-        })#
     
     def get_urls(self):
         from django.urls import path
@@ -582,13 +499,22 @@ class WalletAdmin(admin.ModelAdmin):
                 messages.error(request, "Monto inválido")
                 return redirect(request.path)
 
-            motivo = request.POST.get("motivo", "").strip()
+            # 🔥 NUEVO SISTEMA DE MOTIVO
+            motivo_select = request.POST.get("motivo_select", "").strip()
+            motivo_custom = request.POST.get("motivo_custom", "").strip()
+
+            if motivo_select == "otro":
+                motivo = motivo_custom
+            elif motivo_select:
+                motivo = motivo_select
+            else:
+                motivo = ""
 
             if not motivo:
                 messages.error(request, "Debés ingresar un motivo")
                 return redirect(request.path)
 
-            # ✅ créditos personales (CLAVE)
+            # ✅ créditos personales
             wallet.balance_personal += amount
             wallet.save()
 
@@ -596,7 +522,7 @@ class WalletAdmin(admin.ModelAdmin):
             CreditTransaction.objects.create(
                 wallet=wallet,
                 amount=amount,
-                transaction_type="purchase_personal",  # 🔥 importante diferenciar purchase_personal
+                transaction_type="purchase_personal",
                 motivo=motivo,
                 created_by=request.user
             )
@@ -723,6 +649,9 @@ def ajuste_manual_global(request):
     wallets = Wallet.objects.all()
 
     return render(request, "admin/ajuste_manual.html", {"wallets": wallets})
+
+from django.utils.html import format_html
+
 
 
 from django.urls import path
