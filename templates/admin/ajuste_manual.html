@@ -1,0 +1,124 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+<div style="max-width:600px; margin:40px auto; background:#0b1f3a; padding:30px; border-radius:12px; color:white; box-shadow:0 0 10px rgba(0,0,0,0.3);">
+
+    <h2 style="margin-bottom:10px;">⚖️ Ajuste Manual</h2>
+
+    <p style="color:#ffc107; margin-bottom:20px;">
+        ⚠️ Este ajuste impacta directamente en el saldo. Usar con cuidado.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- WALLET -->
+        <div style="margin-bottom:15px;">
+            <label>Wallet</label><br>
+            <select name="wallet_id" 
+                style="
+                    width:100%;
+                    padding:12px;
+                    height:45px;
+                    border-radius:6px;
+                    background:#111;
+                    color:#fff;
+                    border:1px solid #666;
+                    font-size:14px;
+                ">
+                {% for w in wallets %}
+                    <option value="{{ w.id }}">
+                        {{ w|truncatechars:40 }} | E: {{ w.balance_empresa }} | P: {{ w.balance_personal }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- MONTO -->
+        <div style="margin-bottom:15px;">
+            <label>Monto</label><br>
+            <input id="amountInput" type="number" name="amount" required 
+                   style="
+                        width:100%;
+                        padding:10px;
+                        border-radius:6px;
+                        background:#111;
+                        color:white;
+                        border:2px solid #555;
+                   ">
+        </div>
+
+        <!-- TIPO -->
+        <div style="margin-bottom:15px;">
+            <label>Tipo</label><br>
+            <select name="tipo" 
+                style="
+                    width:100%;
+                    padding:12px;
+                    height:45px;
+                    border-radius:6px;
+                    background:#111;
+                    color:#fff;
+                    border:1px solid #666;
+                    font-size:14px;
+                ">
+                <option value="empresa">Empresa</option>
+                <option value="personal">Personal</option>
+            </select>
+        </div>
+
+        <!-- MOTIVO -->
+        <div style="margin-bottom:20px;">
+            <label>Motivo</label><br>
+            <input type="text" name="motivo" required 
+                   style="
+                        width:100%;
+                        padding:10px;
+                        border-radius:6px;
+                        background:#111;
+                        color:white;
+                        border:1px solid #555;
+                   ">
+        </div>
+
+        <button type="submit" 
+                style="
+                    width:100%;
+                    padding:12px;
+                    background:#28a745;
+                    border:none;
+                    color:white;
+                    border-radius:6px;
+                    font-weight:bold;
+                    cursor:pointer;
+                ">
+            Aplicar ajuste
+        </button>
+
+    </form>
+</div>
+
+<!-- 💥 SCRIPT PRO (verde/rojo) -->
+<script>
+    const input = document.getElementById("amountInput");
+
+    input.addEventListener("input", function() {
+        const value = parseFloat(this.value);
+
+        if (isNaN(value)) {
+            this.style.borderColor = "#555";
+            return;
+        }
+
+        if (value > 0) {
+            this.style.borderColor = "#28a745"; // verde
+        } else if (value < 0) {
+            this.style.borderColor = "#dc3545"; // rojo
+        } else {
+            this.style.borderColor = "#555";
+        }
+    });
+</script>
+
+{% endblock %}

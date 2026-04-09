@@ -81,13 +81,15 @@ class UserProfile(models.Model):
                     CreditTransaction.objects.create(
                         wallet=wallet_empresa,
                         amount=amount,
-                        transaction_type="refund_empresa"
+                        transaction_type="refund_empresa",
+                        created_by=request.user,
                     )
 
                     CreditTransaction.objects.create(
                         wallet=wallet_user,
                         amount=-amount,
-                        transaction_type="refund_empresa"
+                        transaction_type="refund_empresa",
+                        created_by=request.user,
                     )
 
         super().save(*args, **kwargs)
@@ -128,10 +130,13 @@ class Wallet(models.Model):
 class CreditTransaction(models.Model):
 
     TRANSACTION_TYPES = (
-        ("purchase", "Carga"),
+        ("purchase_empresa", "Compra empresarial"),
+        ("purchase_personal", "Compra particular"),
+        
         ("transfer", "Transferencia"),
         ("redeem", "Consumo"),
-        ("refund", "Devolución"),
+        ("refund_empresa", "Devolución automática"),
+        ("adjustment", "Ajuste Manual"),
     )
 
     from django.contrib.auth.models import User

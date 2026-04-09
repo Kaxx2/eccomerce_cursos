@@ -60,6 +60,15 @@ class CustomAdminSite(AdminSite):
         })
 
         return super().index(request, extra_context)
+    
+    def get_urls(self):
+            urls = super().get_urls()
+
+            custom_urls = [
+                path('ajuste-manual/', self.admin_view(ajuste_manual_global)),
+            ]
+
+            return custom_urls + urls
 
 #class EmpresaUsuarioFilter(admin.SimpleListFilter):
     #title = "Tipo"
@@ -171,7 +180,7 @@ class EmpresaAdmin(admin.ModelAdmin):
             CreditTransaction.objects.create(
                 wallet=wallet_empresa,
                 amount=amount,
-                transaction_type="purchase",  # más claro
+                transaction_type="purchase_empresa",  # más claro
                 motivo=motivo,
                 created_by=request.user
             )
@@ -324,7 +333,6 @@ class CreditTransactionAdmin(admin.ModelAdmin):
     'transaction_type',
     'motivo',
     'created_by',  # 👈 nuevo
-    'revertir_transaccion',
     'created_at'
 )
     list_filter = ("transaction_type",)
@@ -339,9 +347,13 @@ class CreditTransactionAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
     
-    def revertir_transaccion(self, obj):
+    #def revertir_transaccion(self, obj):
         from django.urls import reverse
         from django.utils.html import format_html
+
+        # ❌ no mostrar si no es carga o ya está revertida
+        if obj.transaction_type != "purchase":
+            return "-"
 
         if obj.reverted:
             return "Revertida"
@@ -355,9 +367,19 @@ class CreditTransactionAdmin(admin.ModelAdmin):
             'onclick="return confirm(\'¿Revertir esta transacción?\\nEsto generará un movimiento inverso.\')">'
             'Revertir</a>',
             url
-        )
+        )#
+    #def revertir_transaccion_view(self, request, transaction_id):
 
-    def revertir_transaccion_view(self, request, transaction_id):
+        from django.shortcuts import get_object_or_404, redirect
+        from django.contrib import messages
+
+        transaction = get_object_or_404(CreditTransaction, id=transaction_id)
+
+        # 👇 VALIDACIÓN CORRECTA
+        if transaction.transaction_type != "purchase":
+            messages.error(request, "Solo se pueden revertir cargas de créditos")
+            return redirect("/admin/accounts/credittransaction/")
+            
         from django.shortcuts import get_object_or_404, redirect
         from django.contrib import messages
 
@@ -379,7 +401,22 @@ class CreditTransactionAdmin(admin.ModelAdmin):
     )
 
         # actualizar balance
-        wallet.balance -= transaction.amount
+        motivo = (transaction.motivo or "").lower()
+
+        if "personal" in motivo or "particular" in motivo:
+            if wallet.balance_personal < transaction.amount:
+                messages.error(request, "No hay saldo personal suficiente para revertir")
+                return redirect("/admin/accounts/credittransaction/")
+            
+            wallet.balance_personal -= transaction.amount
+
+        else:
+            if wallet.balance_empresa < transaction.amount:
+                messages.error(request, "No hay saldo empresa suficiente para revertir")
+                return redirect("/admin/accounts/credittransaction/")
+    
+        wallet.balance_empresa -= transaction.amount
+
         wallet.save()
 
         # marcar como revertida
@@ -388,22 +425,54 @@ class CreditTransactionAdmin(admin.ModelAdmin):
 
         messages.success(request, "Transacción revertida correctamente")
 
-        return redirect("/admin/accounts/credittransaction/")
+        return redirect("/admin/accounts/credittransaction/")#
+    
+    #def ajuste_manual_view(self, request):
+        from django.shortcuts import render, redirect
+        from django.contrib import messages
+        from .models import Wallet, CreditTransaction
+
+        if request.method == "POST":
+            wallet_id = request.POST.get("wallet_id")
+            amount = int(request.POST.get("amount"))
+            tipo = request.POST.get("tipo")
+            motivo = request.POST.get("motivo")
+
+            wallet = Wallet.objects.get(id=wallet_id)
+
+            # 💥 aplicar ajuste
+            if tipo == "empresa":
+                wallet.balance_empresa += amount
+            else:
+                wallet.balance_personal += amount
+
+            wallet.save()
+
+            # 💥 registrar historial
+            CreditTransaction.objects.create(
+                wallet=wallet,
+                amount=amount,
+                transaction_type="adjustment",
+                motivo=motivo,
+                created_by=request.user
+            )
+
+            messages.success(request, "Ajuste realizado correctamente")
+            return redirect("/admin/accounts/credittransaction/")
+
+        wallets = Wallet.objects.all()
+
+        return render(request, "admin/ajuste_manual.html", {
+            "wallets": wallets
+        })#
     
     def get_urls(self):
         from django.urls import path
 
         urls = super().get_urls()
 
-        custom_urls = [
-            path(
-                'revertir-transaccion/<int:transaction_id>/',
-                self.admin_site.admin_view(self.revertir_transaccion_view),
-                name="revertir-transaccion",
-            ),
-        ]
-
-        return custom_urls + urls
+    
+        return urls
     
 #@admin.register(CreditTransfer)
 #class CreditTransferAdmin(admin.ModelAdmin):
@@ -517,7 +586,7 @@ class WalletAdmin(admin.ModelAdmin):
             CreditTransaction.objects.create(
                 wallet=wallet,
                 amount=amount,
-                transaction_type="purchase_personal",  # 🔥 importante diferenciar
+                transaction_type="purchase_personal",  # 🔥 importante diferenciar purchase_personal
                 motivo=motivo,
                 created_by=request.user
             )
@@ -608,6 +677,49 @@ class WalletAdmin(admin.ModelAdmin):
     list_filter = (WalletTypeFilter,)
 
     
+
+
+
+
+
+def ajuste_manual_global(request):
+    from django.shortcuts import render, redirect
+    from django.contrib import messages
+    from .models import Wallet, CreditTransaction
+
+    if request.method == "POST":
+        wallet_id = request.POST.get("wallet_id")
+        amount = int(request.POST.get("amount"))
+        tipo = request.POST.get("tipo")
+        motivo = request.POST.get("motivo")
+
+        wallet = Wallet.objects.get(id=wallet_id)
+
+        if tipo == "empresa":
+            wallet.balance_empresa += amount
+        else:
+            wallet.balance_personal += amount
+
+        wallet.save()
+
+        CreditTransaction.objects.create(
+            wallet=wallet,
+            amount=amount,
+            transaction_type="adjustment",
+            motivo=motivo,
+            created_by=request.user
+        )
+
+        messages.success(request, "Ajuste realizado correctamente")
+        return redirect("/admin/")
+
+    wallets = Wallet.objects.all()
+
+    return render(request, "admin/ajuste_manual.html", {"wallets": wallets})
+
+
+from django.urls import path
+from django.contrib import admin
 
 
 admin_site = CustomAdminSite(name='custom_admin')
