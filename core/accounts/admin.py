@@ -620,14 +620,53 @@ def ajuste_manual_global(request):
     from django.contrib import messages
     from .models import Wallet, CreditTransaction
 
+    wallets = Wallet.objects.all()
+
     if request.method == "POST":
-        wallet_id = request.POST.get("wallet_id")
-        amount = int(request.POST.get("amount"))
-        tipo = request.POST.get("tipo")
-        motivo = request.POST.get("motivo")
+        try:
+            wallet_id = int(request.POST.get("wallet_id"))
+            amount = int(request.POST.get("amount"))
+            tipo = request.POST.get("tipo")
+            motivo = (request.POST.get("motivo") or "").strip()
 
-        wallet = Wallet.objects.get(id=wallet_id)
+            wallet = Wallet.objects.get(id=wallet_id)
 
+        except Exception:
+            messages.error(request, "Datos inválidos")
+            return redirect(request.path)
+
+        # ✅ validar motivo
+        if not motivo:
+            messages.error(request, "Debés ingresar un motivo")
+            return redirect(request.path)
+
+        # ✅ validar tipo
+        if tipo not in ["empresa", "personal"]:
+            messages.error(request, "Tipo inválido")
+            return redirect(request.path)
+
+        # 🔥 VALIDACIÓN DE NEGATIVOS (CLAVE)
+        if tipo == "empresa":
+            nuevo_balance = wallet.balance_empresa + amount
+
+            if nuevo_balance < 0:
+                messages.error(
+                    request,
+                    f"No podés dejar saldo negativo en empresa. Saldo actual: {wallet.balance_empresa}"
+                )
+                return redirect(request.path)
+
+        else:  # personal
+            nuevo_balance = wallet.balance_personal + amount
+
+            if nuevo_balance < 0:
+                messages.error(
+                    request,
+                    f"No podés dejar saldo negativo en personal. Saldo actual: {wallet.balance_personal}"
+                )
+                return redirect(request.path)
+
+        # ✅ aplicar ajuste
         if tipo == "empresa":
             wallet.balance_empresa += amount
         else:
@@ -635,6 +674,7 @@ def ajuste_manual_global(request):
 
         wallet.save()
 
+        # ✅ historial
         CreditTransaction.objects.create(
             wallet=wallet,
             amount=amount,
@@ -645,8 +685,6 @@ def ajuste_manual_global(request):
 
         messages.success(request, "Ajuste realizado correctamente")
         return redirect("/admin/")
-
-    wallets = Wallet.objects.all()
 
     return render(request, "admin/ajuste_manual.html", {"wallets": wallets})
 
@@ -668,5 +706,4 @@ admin_site.register(User, UserAdmin)
 admin_site.register(UserProfile, UserProfileAdmin)
 admin_site.register(Wallet, WalletAdmin)
 admin_site.register(CreditTransaction, CreditTransactionAdmin)
-admin_site.register(Equipo)
 admin_site.register(Curso)
